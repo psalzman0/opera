@@ -1,0 +1,92 @@
+import gab.opencv.*;
+import processing.video.*;
+import java.awt.Rectangle;
+
+
+Capture video;
+OpenCV opencv;
+
+Rectangle[] faces;
+
+PImage r = createImage(320, 240, RGB);
+PImage g = createImage(320, 240, RGB);
+PImage b = createImage(320, 240, RGB);
+
+PImage face;
+PGraphics pg;
+
+
+int halfImage = width*height/2;
+
+
+void setup() {
+  size(displayWidth, displayHeight);
+  video = new Capture(this, 640/2, 480/2);
+  opencv = new OpenCV(this, 640/2, 480/2);
+
+  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+  faces = opencv.detect();
+
+
+  video.start();
+}
+
+void draw() {
+  background(255);
+  scale(2);
+  opencv.loadImage(video);
+  faces = opencv.detect();
+
+  //image(opencv.getInput(), 0, 0);
+  //image(video, 0, 0 ); //hace que se vea la imagen de la cámara 
+
+
+  noFill();
+  stroke(255, 0, 0);
+  strokeWeight(1);
+
+  for (int i = 0; i < faces.length; i++) {
+    rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
+  }
+
+  for (int i = 0; i < faces.length; i++) {// cuenta caras
+    rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height); // mide
+
+    PImage cara = createImage(faces[i].width, faces[i].height, RGB); // para cada cara
+    video.copy(faces[i].x, faces[i].y, faces[i].width, faces[i].height, faces[i].x+faces[i].width, faces[i].y, faces[i].width, faces[i].height);
+
+
+    //image(cara, faces[i].x, faces[i].y); // dibuja imagen (cuadro negro)
+  }
+  r.loadPixels();
+  g.loadPixels();
+  b.loadPixels();
+  //video.loadPixels();
+  //for (int i = 0; i < halfImage; i++) {
+  //  pixels[i+halfImage] = pixels[i];
+  //}
+
+  // se supone lo que hace que se cambie el color
+  for (int i = 0; i < video.pixels.length; i++) {
+    float cr = red(video.pixels[i]);
+    float cg = green(video.pixels[i]);
+    float cb = blue(video.pixels[i]);
+
+    r.pixels[i] = color(cr, 0, 0);
+    g.pixels[i] = color(0, cg, 0,50);
+    b.pixels[i] = color(0, 0, cb,50);
+  }
+  //updatePixels();
+  r.updatePixels();
+  g.updatePixels();
+  b.updatePixels();
+  image(r, video.width+random(10), 0);
+ // blend(g, 0, 0, 33, 100, 67, 0, 33, 100, ADD);
+  image(g, video.width+random(20), 0);
+  //blend(b, 0, 0, 33, 100, 67, 0, 33, 100, ADD);
+ image(b, video.width+random(20), 0);
+}
+
+void captureEvent(Capture c) {
+  c.read();
+}
